@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import * as bcrypt from 'bcrypt'
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -49,8 +50,10 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create a new user document
-    const newUser = new User({ email, password });
+    const newUser = new User({ email, password: hashedPassword });
     const savedUser = await newUser.save(); // Save the user to MongoDB
 
     console.log("User saved successfully:", savedUser);
@@ -60,6 +63,7 @@ const signup = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" }); // Send error response
   }
 };
+
 
 // Define the router and endpoint
 const authRoutes = Router();
