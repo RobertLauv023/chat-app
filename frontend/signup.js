@@ -5,8 +5,8 @@ const SERVER_URL = "http://localhost:8747";
 
 async function callSignup() {
   // 1) Get input elements
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");
+  const emailInput = document.getElementById("register-email");
+  const passwordInput = document.getElementById("register-password");
 
   // 2) Check if elements exist
   if (!emailInput || !passwordInput) {
