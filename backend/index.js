@@ -34,6 +34,15 @@ const userSchema = new mongoose.Schema({
 // Create a Mongoose model for the "users" collection
 const User = mongoose.model("User", userSchema);
 
+const userProfileSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  firstName: { type: String },
+  lastName: { type: String },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const UserProfile = mongoose.model('UserProfile', userProfileSchema);
+
 const signup = async (req, res) => {
   try {
     console.log("Received signup request:", req.body); // Log incoming request body
@@ -59,6 +68,9 @@ const signup = async (req, res) => {
     // Create a new user document
     const newUser = new User({ email, password: hashedPassword });
     const savedUser = await newUser.save(); // Save the user to MongoDB
+
+    const userProfile = new UserProfile({ userId: savedUser._id });
+    await userProfile.save();
 
     console.log("User saved successfully:", savedUser);
     res.status(201).json({ message: "User registered successfully" }); // Send success response
@@ -90,16 +102,11 @@ const login = async (req, res) => {
 
     const storedHashPassword = existingUser.password;
 
-    // Create a new user document
-    //const newUser = new User({ email, password: hashedPassword });
-    //const savedUser = await newUser.save(); // Save the user to MongoDB
-
     const isValid = await bcrypt.compare(password, storedHashPassword);
 
     if (isValid) {
       console.log("Existing user id: " + existingUser._id);
       const token = jsonwebtoken.sign({ id: existingUser._id, username: existingUser.email}, secretKey, { expiresIn: expiresIn});
-      //console.log(token);
       console.log("User successfully logged in:", User);
       res.status(200).json({ message: "Login successful!", token: token }); // Send success response
     } else {
@@ -116,12 +123,71 @@ const logout = async (req, res) => {
   try {
     console.log("Received logout request:"); // Log incoming request body
 
-      //console.log(token);
-    console.log("User successfully logged in:", User);
+    console.log("User successfully logged out:", User);
     res.status(200).json({ message: "Logout successful!" }); // Send success response
     } catch (error) {
     console.error("Logout error:", error);
     res.status(500).json({ message: "Internal Server Error" }); // Send error response
+  }
+};
+
+const userinfo = async (req, res) => {
+
+  const token = req.headers['Authorization'] || req.headers['authorization'].split(' ')[1];;
+  if (!token) return res.status(404).json({ message: "User does not exist or ID not in token"});
+
+  try {
+    console.log("Received get user info request:"); // Log user info get request
+
+    const decoding = jsonwebtoken.decode(token);
+
+    const decoded = jsonwebtoken.verify(token, secretKey);
+    const userId = decoded.id;
+    console.log("User Info: ", decoding);
+
+    const userProfile = await UserProfile.findOne({ userId });
+    if (!userProfile) return res.status(404).json({ message: "Profile not found" });
+
+    res.status(200).json({ message: "User data found", userProfile })
+
+  } catch (error) {
+    console.error("userinfo error:", error);
+    res.status(500).json({ message: "Unexpected server error" });
+  }
+};
+
+const updateProfile = async (req, res) => {
+ 
+  const token = req.headers['Authorization'] || req.headers['authorization'].split(' ')[1];;
+  
+  if (!token) return res.status(404).json({ message: "Token not found" });
+
+  try {
+    console.log("Received update profile request: ");
+
+    const decoding = jsonwebtoken.decode(token);
+
+    const decoded = jsonwebtoken.verify(token, secretKey);
+    const userId = decoded.id;
+
+    if (!userId) {
+      console.log("Missing user ID");
+      res.status(400).json({ message: "Missing user ID or required fields "});
+    }
+
+    const { firstName, lastName } = req.body;
+
+    const updatedProfile = await UserProfile.findOneAndUpdate( 
+      { userId },
+      { firstName, lastName, updatedAt: new Date() },
+      { new: true }
+    );
+
+    console.log("User profile updated!", updatedProfile);
+    res.status(200).json({ message: "Profile updated! "});    
+  } catch (error) {
+    console.log("Update profile error: ", error);
+    res.status(500).json({ message: "Internal server error "});
   }
 };
 
@@ -138,6 +204,11 @@ authRoutes.post("/login", login);
 
 // POST /api/auth/logout
 authRoutes.post("/logout", logout);
+
+// GET /api/auth/userinfo
+authRoutes.get("/userinfo", userinfo);
+
+authRoutes.post("/update-profile", updateProfile);
 
 // Connect to MongoDB using Mongoose
 mongoose
