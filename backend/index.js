@@ -112,6 +112,19 @@ const login = async (req, res) => {
   }
 };
 
+const logout = async (req, res) => {
+  try {
+    console.log("Received logout request:"); // Log incoming request body
+
+      //console.log(token);
+    console.log("User successfully logged in:", User);
+    res.status(200).json({ message: "Logout successful!" }); // Send success response
+    } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ message: "Internal Server Error" }); // Send error response
+  }
+};
+
 
 // Define the router and endpoint
 const authRoutes = Router();
@@ -122,6 +135,9 @@ authRoutes.post("/signup", signup);
 
 // POST /api/auth/login
 authRoutes.post("/login", login);
+
+// POST /api/auth/logout
+authRoutes.post("/logout", logout);
 
 // Connect to MongoDB using Mongoose
 mongoose

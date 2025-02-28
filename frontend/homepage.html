@@ -90,7 +90,8 @@
   <header>
     <div class="header-container">
       <h1>Welcome Back!</h1>
-      <button class="logout-btn" onclick="logout()">Logout</button>
+      <button onclick="callLogout()">Logout</button>
+      <script type="module" src="./logout.js" defer></script>
     </div>
   </header>
 
@@ -100,17 +101,6 @@
       <p>Welcome to your dashboard. You are now logged in and ready to explore the features.</p>
     </div>
   </div>
-
-  <script>
-    function logout() {
-      // For now, just redirect to a login page or refresh
-      const token = localStorage.getItem('jwt_token');
-      localStorage.removeItem('jwt_token');
-      alert("You have logged out!");
-      // Example redirect (adjust as necessary)
-      window.location.href = "index.html"; // Adjust the URL as needed
-    }
-  </script>
 
 </body>
 </html>
