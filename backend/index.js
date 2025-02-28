@@ -3,6 +3,10 @@ import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import * as bcrypt from 'bcrypt'
+import jsonwebtoken from 'jsonwebtoken';
+
+const secretKey = 'ALDNVBLSIKEJ123KFJ#$K!KJFDLK@J#!'
+const expiresIn = '1h';
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -64,6 +68,50 @@ const signup = async (req, res) => {
   }
 };
 
+const login = async (req, res) => {
+  try {
+    console.log("Received login request:", req.body); // Log incoming request body
+
+    // Extract email and password from request body
+    const { email, password } = req.body;
+
+    // Validate that email and password are provided
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
+    // Check if the user already exists in the database
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(404).json({ message: "Email does not exist" });
+    }
+
+    const storedHashPassword = existingUser.password;
+
+    // Create a new user document
+    //const newUser = new User({ email, password: hashedPassword });
+    //const savedUser = await newUser.save(); // Save the user to MongoDB
+
+    const isValid = await bcrypt.compare(password, storedHashPassword);
+
+    if (isValid) {
+      console.log("Existing user id: " + existingUser._id);
+      const token = jsonwebtoken.sign({ id: existingUser._id, username: existingUser.email}, secretKey, { expiresIn: expiresIn});
+      //console.log(token);
+      console.log("User successfully logged in:", User);
+      res.status(200).json({ message: "Login successful!", token: token }); // Send success response
+    } else {
+      console.log("User failed to login")
+      res.status(400).json({ message: "Missing email or password, or invalid password"})
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Internal Server Error" }); // Send error response
+  }
+};
+
 
 // Define the router and endpoint
 const authRoutes = Router();
@@ -71,6 +119,9 @@ app.use("/api/auth", authRoutes);
 
 // POST /api/auth/signup
 authRoutes.post("/signup", signup);
+
+// POST /api/auth/login
+authRoutes.post("/login", login);
 
 // Connect to MongoDB using Mongoose
 mongoose
