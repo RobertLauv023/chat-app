@@ -1,0 +1,194 @@
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Users</title>
+</head>
+<body>
+    <h1>Search for Users</h1>
+
+    <input type="text" id="search-term" placeholder="Search users..." />
+    <button onclick="callTheSearch()">Search</button>
+    <script type="module" src="./search.js" defer></script>
+
+    <script>
+        function callTheSearch() {
+            const response = callSearch();
+        }
+    </script>
+</html>-->
+
+<!-- index.html (Frontend) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Users</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            width: 80%;
+            text-align: center;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .user-box {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            width: 60%;
+            margin: 0 auto;
+            display: none;  /* Initially hidden */
+        }
+
+        .user-box h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .user-box p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .user-box .user {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+
+        #return-button {
+            position: fixed; /* Fix the button to the page */
+            top: 10px; /* Distance from the top */
+            left: 10px; /* Distance from the left */
+            padding: 10px 20px; /* Button padding */
+            background-color: #4CAF50; /* Button color */
+            color: white; /* Text color */
+            border: none; /* Remove border */
+            border-radius: 5px; /* Rounded corners */
+            cursor: pointer; /* Pointer on hover */
+        }
+
+        #return-button:hover {
+            background-color: #45a049; /* Darken button on hover */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="search-box">
+        <input type="text" id="search-term" placeholder="Enter name or email..." />
+        <button id="myButton">Search</button>
+    </div>
+    
+    <div class="user-box" id="userBox">
+        <h3>Search Results:</h3>
+        <div id="userList"></div>  <!-- Dynamic user list will be populated here -->
+    </div>
+
+    <button id="return-button" onclick="window.location.href = 'homepage.html'">
+        Return to homepage
+    </button>
+</div>
+
+<script type="module">
+    import axios from "axios";
+    // Function to search users
+    document.getElementById('myButton').addEventListener('click', callTheSearch);
+    async function callTheSearch() {
+        
+        // Backend URL
+        const SERVER_URL = "http://localhost:8747";
+
+        const searchInput = document.getElementById("search-term");
+
+        if (!searchInput) {
+            console.error("Missing #search-term element in HTML");
+            alert("Error: Search term field is missing.");
+            return;
+        }
+
+        const searchTerm = searchInput.value.trim();
+
+        try {
+
+            // Send request using Axios
+            const response = await axios.post(
+            `${SERVER_URL}/api/contacts/search`,
+            { searchTerm },
+            { headers: { "Content-Type": "application/json" } }
+            );
+
+            // Success response
+            const users = response.data;
+            displayUsers(users);
+            
+        } catch (error) {
+            // 8) Handle errors
+            console.error("Search error:", error);
+            const message =
+            error.response?.data?.message || error.message || "Unknown error";
+            //alert(`Search error: ${message}`);
+            const userBox = document.getElementById('userBox');
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';  // Clear previous results
+        }
+    }
+
+    // Function to display users in the user box
+    function displayUsers(users) {
+        const userBox = document.getElementById('userBox');
+        const userList = document.getElementById('userList');
+        userList.innerHTML = '';  // Clear previous results
+
+        if (users.length > 0) {
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.classList.add('user');
+                userDiv.innerHTML = `
+                    <strong>Email:</strong> ${user.email}<br>
+                    <strong>First name:</strong> ${user.firstName}<br>
+                    <strong>Last name:</strong> ${user.lastName}
+                `;
+                userList.appendChild(userDiv);
+            });
+            userBox.style.display = 'block';  // Show the user box if there are results
+        } else {
+            userBox.style.display = 'none';  // Hide the user box if no results
+            alert('No users found');
+        }
+    }
+</script>
+
+</body>
+</html>
+

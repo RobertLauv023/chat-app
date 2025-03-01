@@ -38,7 +38,6 @@ async function callLogin() {
 
     // 7) Success response
     console.log("Login successful:", response.data);
-    //alert("Login successful!\n" + JSON.stringify(response.data, null, 2));
     alert("Login successful!\n");
 
     localStorage.setItem('jwt_token', response.data.token);
