@@ -81,6 +81,7 @@ const signup = async (req, res) => {
   }
 };
 
+// Authenticates a user logging in
 const login = async (req, res) => {
   try {
     console.log("Received login request:", req.body); // Log incoming request body
@@ -120,6 +121,7 @@ const login = async (req, res) => {
   }
 };
 
+// Logs the user out 
 const logout = async (req, res) => {
   try {
     console.log("Received logout request:"); // Log incoming request body
@@ -132,6 +134,7 @@ const logout = async (req, res) => {
   }
 };
 
+// Displays user first and last name
 const userinfo = async (req, res) => {
 
   const token = req.headers['Authorization'] || req.headers['authorization'].split(' ')[1];;
@@ -144,7 +147,6 @@ const userinfo = async (req, res) => {
 
     const decoded = jsonwebtoken.verify(token, secretKey);
     const userId = decoded.id;
-    console.log("User Info: ", decoding);
 
     const userProfile = await UserProfile.findOne({ userId });
     if (!userProfile) return res.status(404).json({ message: "Profile not found" });
@@ -157,6 +159,7 @@ const userinfo = async (req, res) => {
   }
 };
 
+// Updates user first and last name
 const updateProfile = async (req, res) => {
  
   const token = req.headers['Authorization'] || req.headers['authorization'].split(' ')[1];;
@@ -230,6 +233,32 @@ const search = async (req, res) => {
   }
 };
 
+// Displays all users except self
+const allContacts = async (req, res) => {
+  
+  const token = req.headers['Authorization'] || req.headers['authorization'].split(' ')[1];;
+
+  if (!token) return res.status(404).json({ message: "Token not found" });
+
+  try {
+    console.log("Received get all users request: ");
+
+    const decoded = jsonwebtoken.verify(token, secretKey);
+    const userId = decoded.id;
+
+    const user_search = await UserProfile.find({
+      userId: { $ne: userId } 
+    }).exec();
+
+    console.log("Users found");
+    res.status(200).json(user_search);
+
+  } catch (error) {
+    console.log("Get all users error", error);
+    res.status(500).json({ message: "Unexpected server or database error "});
+  }
+};
+
 
 // Define the router and endpoint
 const authRoutes = Router();
@@ -254,6 +283,9 @@ authRoutes.post("/update-profile", updateProfile);
 
 // POST /api/contacts/search
 contactRoutes.post("/search", search);
+
+// GET /api/contacts/all-contacts
+contactRoutes.get("/all-contacts", allContacts);
 
 // Connect to MongoDB using Mongoose
 mongoose
