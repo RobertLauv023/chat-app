@@ -36,6 +36,7 @@ const User = mongoose.model("User", userSchema);
 
 const userProfileSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  email: { type: String},
   firstName: { type: String },
   lastName: { type: String },
   updatedAt: { type: Date, default: Date.now }
@@ -69,7 +70,7 @@ const signup = async (req, res) => {
     const newUser = new User({ email, password: hashedPassword });
     const savedUser = await newUser.save(); // Save the user to MongoDB
 
-    const userProfile = new UserProfile({ userId: savedUser._id });
+    const userProfile = new UserProfile({ userId: savedUser._id, email: savedUser.email });
     await userProfile.save();
 
     console.log("User saved successfully:", savedUser);
@@ -191,10 +192,50 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// Search for users
+const search = async (req, res) => {
+  const { query } = req.query;
+
+  try {
+    console.log("Recieved search request: ", req.body);
+
+    const { searchTerm } = req.body;
+
+    if (!searchTerm) {
+      console.log("Missing search term");
+      res.status(400).json({ message: "Missing search term" });
+    }
+
+    const regex = new RegExp(searchTerm, 'i');
+
+    const user_search = await UserProfile.find({
+      $or: [
+        { firstName: { $regex: regex } }, 
+        { lastName: { $regex: regex } }
+      ]
+    }).exec();
+
+    
+    if (user_search.length === 0) {
+      console.log("No users found");
+      res.status(400).json([]);
+    } else {
+      console.log("Users found");
+      res.status(200).json(user_search);
+      }
+
+  } catch (error) {
+    console.log("User search error ", error);
+    res.status(500).json({ message: "Unexpected server error" });
+  }
+};
+
 
 // Define the router and endpoint
 const authRoutes = Router();
+const contactRoutes = Router();
 app.use("/api/auth", authRoutes);
+app.use("/api/contacts", contactRoutes);
 
 // POST /api/auth/signup
 authRoutes.post("/signup", signup);
@@ -208,7 +249,11 @@ authRoutes.post("/logout", logout);
 // GET /api/auth/userinfo
 authRoutes.get("/userinfo", userinfo);
 
+// POST /api/auth/update-profile
 authRoutes.post("/update-profile", updateProfile);
+
+// POST /api/contacts/search
+contactRoutes.post("/search", search);
 
 // Connect to MongoDB using Mongoose
 mongoose
