@@ -23,9 +23,10 @@ async function callUserInfo() {
     // 7) Success response
     const user = response.data;
     console.log("User info found:", response.data);
-    alert("First name: " + user.userProfile.firstName + 
-            "\nLast name: " + user.userProfile.lastName
+    alert("Email: " + user.userProfile.email + "\nName: " + user.userProfile.firstName + 
+             " " + user.userProfile.lastName
     );
+    return user.userProfile;
   } catch (error) {
     // 8) Handle errors
     console.log("User info error:", error);

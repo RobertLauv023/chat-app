@@ -1,173 +1,3 @@
-<!--<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Users</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f9;
-        }
-
-        .container {
-            width: 80%;
-            text-align: center;
-        }
-
-        .search-box {
-            margin-bottom: 20px;
-        }
-
-        .search-box input {
-            padding: 10px;
-            width: 300px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .user-box {
-            margin-top: 20px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #fff;
-            width: 60%;
-            margin: 0 auto;
-            display: none;  /* Initially hidden */
-        }
-
-        .user-box h3 {
-            margin: 0;
-            font-size: 18px;
-            color: #333;
-        }
-
-        .user-box p {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .user-box .user {
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            background-color: #fafafa;
-        }
-
-        #return-button {
-            position: fixed; /* Fix the button to the page */
-            top: 10px; /* Distance from the top */
-            left: 10px; /* Distance from the left */
-            padding: 10px 20px; /* Button padding */
-            background-color: #4CAF50; /* Button color */
-            color: white; /* Text color */
-            border: none; /* Remove border */
-            border-radius: 5px; /* Rounded corners */
-            cursor: pointer; /* Pointer on hover */
-        }
-
-        #return-button:hover {
-            background-color: #45a049; /* Darken button on hover */
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="search-box">
-        <input type="text" id="search-term" placeholder="Enter name or email..." />
-        <button id="myButton">Search</button>
-    </div>
-    
-    <div class="user-box" id="userBox">
-        <h3>Search Results:</h3>
-        <div id="userList"></div> 
-    </div>
-
-    <button id="return-button" onclick="window.location.href = 'homepage.html'">
-        Return to homepage
-    </button>
-</div>
-
-<script type="module">
-    import axios from "axios";
-    // Function to search users
-    document.getElementById('myButton').addEventListener('click', callTheSearch);
-    async function callTheSearch() {
-        
-        // Backend URL
-        const SERVER_URL = "http://localhost:8747";
-
-        const searchInput = document.getElementById("search-term");
-
-        if (!searchInput) {
-            console.error("Missing #search-term element in HTML");
-            alert("Error: Search term field is missing.");
-            return;
-        }
-
-        const searchTerm = searchInput.value.trim();
-
-        try {
-
-            // Send request using Axios
-            const response = await axios.post(
-            `${SERVER_URL}/api/contacts/search`,
-            { searchTerm },
-            { headers: { "Content-Type": "application/json" } }
-            );
-
-            // Success response
-            const users = response.data;
-            displayUsers(users);
-            
-        } catch (error) {
-            // 8) Handle errors
-            console.error("Search error:", error);
-            const message =
-            error.response?.data?.message || error.message || "Unknown error";
-            //alert(`Search error: ${message}`);
-            const userBox = document.getElementById('userBox');
-            const userList = document.getElementById('userList');
-            userList.innerHTML = '';  // Clear previous results
-        }
-    }
-
-    // Function to display users in the user box
-    function displayUsers(users) {
-        const userBox = document.getElementById('userBox');
-        const userList = document.getElementById('userList');
-        userList.innerHTML = '';  // Clear previous results
-
-        if (users.length > 0) {
-            users.forEach(user => {
-                const userDiv = document.createElement('div');
-                userDiv.classList.add('user');
-                userDiv.innerHTML = `
-                    <strong>Email:</strong> ${user.email}<br>
-                    <strong>First name:</strong> ${user.firstName}<br>
-                    <strong>Last name:</strong> ${user.lastName}
-                `;
-                userList.appendChild(userDiv);
-            });
-            userBox.style.display = 'block';  // Show the user box if there are results
-        } else {
-            userBox.style.display = 'none';  // Hide the user box if no results
-            alert('No users found');
-        }
-    }
-</script>
-
-</body>
-</html>-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -176,69 +6,94 @@
     <title>Search Users</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #6a82fb, #fc5c7d);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f9;
         }
 
         .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
             width: 80%;
+            max-width: 800px;
             text-align: center;
         }
 
         .search-box {
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         .search-box input {
-            padding: 10px;
-            width: 300px;
+            padding: 12px;
+            width: 250px;
             font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: #6a82fb;
+            outline: none;
+        }
+
+        .search-box button {
+            padding: 12px 20px;
+            background-color: #6a82fb;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .search-box button:hover {
+            background-color: #fc5c7d;
         }
 
         .user-box {
             margin-top: 20px;
             padding: 20px;
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #fff;
-            width: 60%;
-            margin: 0 auto;
-            display: none;  /* Initially hidden */
+            display: none;
         }
 
         .user-box h3 {
-            margin: 0;
-            font-size: 18px;
+            font-size: 20px;
+            margin-bottom: 10px;
             color: #333;
         }
 
-        .user-box p {
-            font-size: 14px;
-            color: #666;
+        .user-box .user {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s ease;
         }
 
-        .user-box .user {
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            background-color: #fafafa;
-            display: flex;
-            justify-content: space-between; /* Spread elements */
-            align-items: center;
-            text-align: center; /* Center the content */
+        .user-box .user:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         .user-info {
-            flex-grow: 1;  /* This allows the user info to take the available space */
-            text-align: center; /* Center align text */
+            flex-grow: 1;
+            text-align: left;
         }
 
         .dropdown {
@@ -253,6 +108,7 @@
             min-width: 160px;
             box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
             z-index: 1;
+            border-radius: 5px;
         }
 
         .dropdown:hover .dropdown-content {
@@ -264,25 +120,34 @@
             padding: 12px 16px;
             text-decoration: none;
             display: block;
+            border-bottom: 1px solid #ddd;
         }
 
-        .dropdown-content a:hover {background-color: #f1f1f1}
+        .dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
 
         #return-button {
-            position: fixed; /* Fix the button to the page */
-            top: 10px; /* Distance from the top */
-            left: 10px; /* Distance from the left */
-            padding: 10px 20px; /* Button padding */
-            background-color: #4CAF50; /* Button color */
-            color: white; /* Text color */
-            border: none; /* Remove border */
-            border-radius: 5px; /* Rounded corners */
-            cursor: pointer; /* Pointer on hover */
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
 
         #return-button:hover {
-            background-color: #45a049; /* Darken button on hover */
+            background-color: #45a049;
         }
+
     </style>
 </head>
 <body>
@@ -296,7 +161,7 @@
     
     <div class="user-box" id="userBox">
         <h3>Search Results:</h3>
-        <div id="userList"></div>  <!-- Dynamic user list will be populated here -->
+        <div id="userList"></div>  
     </div>
 
     <button id="return-button" onclick="window.location.href = 'homepage.html'">
@@ -314,9 +179,7 @@
     document.getElementById('allButton').addEventListener('click', callSearchAll)
 
     async function callTheSearch() {
-        // Backend URL
         const SERVER_URL = "http://localhost:8747";
-
         const searchInput = document.getElementById("search-term");
 
         if (!searchInput) {
@@ -328,61 +191,47 @@
         const searchTerm = searchInput.value.trim();
 
         try {
-            // Send request using Axios
             const response = await axios.post(
             `${SERVER_URL}/api/contacts/search`,
             { searchTerm },
             { headers: { "Content-Type": "application/json" } }
             );
-
-            // Success response
             const users = response.data;
             displayUsers(users);
-            
         } catch (error) {
-            // Handle errors
+            alert("Search error: Missing search term", error);
             console.error("Search error:", error);
             const userBox = document.getElementById('userBox');
             const userList = document.getElementById('userList');
-            userList.innerHTML = '';  // Clear previous results
+            userList.innerHTML = '';
         }
     }
 
     async function callSearchAll() {
-
         const SERVER_URL = "http://localhost:8747";
-
         const token = localStorage.getItem('jwt_token');
 
         try {
-            // Send request using Axios
             const response = await axios.get(
             `${SERVER_URL}/api/contacts/all-contacts`,
             { headers: 
                 { "Content-Type": "application/json",
-                    'Authorization': `Bearer ${token}`
-                } }
-            );
-
-            // Success response
+                    'Authorization': `Bearer ${token}` }
+            });
             const users = response.data;
             displayUsers(users);
-            
         } catch (error) {
-            // Handle errors
             console.error("Search error:", error);
             const userBox = document.getElementById('userBox');
             const userList = document.getElementById('userList');
-            userList.innerHTML = '';  // Clear previous results
+            userList.innerHTML = '';
         }
-
     }
 
-    // Function to display users in the user box
     function displayUsers(users) {
         const userBox = document.getElementById('userBox');
         const userList = document.getElementById('userList');
-        userList.innerHTML = '';  // Clear previous results
+        userList.innerHTML = '';  
 
         if (users.length > 0) {
             users.forEach(user => {
@@ -403,20 +252,17 @@
                 `;
                 userList.appendChild(userDiv);
             });
-            userBox.style.display = 'block';  // Show the user box if there are results
+            userBox.style.display = 'block';
         } else {
-            userBox.style.display = 'none';  // Hide the user box if no results
+            userBox.style.display = 'none';
             alert('No users found');
         }
     }
 
-    // Function to handle "Send Message" click
     function sendMessage(userEmail) {
         alert(`Message will be sent to ${userEmail}`);
-        // You can replace the alert with your own logic to open a messaging interface or page.
     }
 </script>
 
 </body>
 </html>
-
