@@ -43,7 +43,7 @@ async function callSearch() {
     console.error("Search error:", error);
     const message =
       error.response?.data?.message || error.message || "Unknown error";
-    alert(`Search error: ${message}`);
+
   }
 }
 

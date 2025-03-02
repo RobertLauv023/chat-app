@@ -199,7 +199,6 @@
             const users = response.data;
             displayUsers(users);
         } catch (error) {
-            alert("Search error: Missing search term", error);
             console.error("Search error:", error);
             const userBox = document.getElementById('userBox');
             const userList = document.getElementById('userList');
