@@ -200,14 +200,14 @@ const search = async (req, res) => {
   const { query } = req.query;
 
   try {
-    console.log("Recieved search request: ", req.body);
+    console.log("Received search request: ", req.body);
 
     const { searchTerm } = req.body;
 
     if (!searchTerm) {
       console.log("Missing search term");
       res.status(400).json({ message: "Missing search term" });
-    }
+    } else {
 
     const regex = new RegExp(searchTerm, 'i');
 
@@ -225,7 +225,8 @@ const search = async (req, res) => {
     } else {
       console.log("Users found");
       res.status(200).json(user_search);
-      }
+    }
+  }
 
   } catch (error) {
     console.log("User search error ", error);
