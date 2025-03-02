@@ -148,6 +148,12 @@
             background-color: #45a049;
         }
 
+        /* Scroll bar for user list */
+        #userList {
+            max-height: 300px; /* Adjust the height as needed */
+            overflow-y: auto;  /* Enable vertical scrolling */
+            padding-right: 15px; /* Add some space for scroll bar */
+        }
     </style>
 </head>
 <body>
@@ -236,7 +242,7 @@
             users.forEach(user => {
                 const userDiv = document.createElement('div');
                 userDiv.classList.add('user');
-                userDiv.innerHTML = `
+                userDiv.innerHTML = ` 
                     <div class="user-info">
                         <strong>Email:</strong> ${user.email}<br>
                         <strong>First name:</strong> ${user.firstName}<br>

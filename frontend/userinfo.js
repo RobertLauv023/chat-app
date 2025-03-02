@@ -26,7 +26,6 @@ async function callUserInfo() {
     alert("Email: " + user.userProfile.email + "\nName: " + user.userProfile.firstName + 
              " " + user.userProfile.lastName
     );
-    return user.userProfile;
   } catch (error) {
     // 8) Handle errors
     console.log("User info error:", error);
