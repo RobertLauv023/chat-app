@@ -6,8 +6,8 @@ dotenv.config();
 
 const PORT = process.env.PORT || 8747;
 const DATABASE_URL = process.env.DATABASE_URL;
-
 async function startServer() {
+  
   try {
     // Connect to MongoDB
     await connectDB(DATABASE_URL);
@@ -24,5 +24,7 @@ async function startServer() {
 
 // Only call startServer if we're not in a Jest test environment
 if (!process.env.JEST_WORKER_ID) {
-  startServer();
+    startServer();
 }
+
+export { app };

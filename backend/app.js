@@ -4,6 +4,13 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import * as bcrypt from 'bcrypt'
 import jsonwebtoken from 'jsonwebtoken';
+//import * as socketIo from 'socket.io';
+//import socketIo from 'socket.io';
+//import server from './index.js';
+//import { app as server } from "./index.js";
+//import { server } from "./index.js";
+import  { Server as SocketServer } from "socket.io";
+import http from 'http';
 
 const secretKey = 'ALDNVBLSIKEJ123KFJ#$K!KJFDLK@J#!'
 const expiresIn = '1h';
@@ -13,6 +20,9 @@ dotenv.config(); // Load environment variables from .env file
 const app = express(); // Create an Express application
 const PORT = process.env.PORT || 8747; // Define the port number (from environment variables or default 8747)
 const DATABASE_URL = process.env.DATABASE_URL; // Load MongoDB connection string from environment variables
+
+//const server_test = http.createServer(server);
+
 
 // Middleware to enable CORS (Cross-Origin Resource Sharing)
 app.use(
@@ -25,6 +35,26 @@ app.use(
 // Middleware to parse incoming JSON requests
 app.use(express.json());
 
+
+
+await connectDB(DATABASE_URL);
+console.log("MongoDB connected successfully");
+
+// Now start the server listening
+const server = app.listen(PORT, () => {
+  console.log(`Server is running at http://localhost:${PORT}`);
+});
+
+  const io = new SocketServer(server, 
+    {
+
+        cors: {
+          origin: "http://localhost:5173",
+          credentials: true,
+        },
+      });
+
+
 // Define a user schema for MongoDB
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true }, // Email is required and must be unique
@@ -35,6 +65,7 @@ const userSchema = new mongoose.Schema({
 export const User = mongoose.model("User", userSchema);
 
 
+// Define a user profile schema for MongoDB
 const userProfileSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   email: { type: String},
@@ -43,7 +74,27 @@ const userProfileSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
+// Create a Mongoose model for the "userprofile" collection
 export const UserProfile = mongoose.model('UserProfile', userProfileSchema);
+
+// Define a chat room schema for MongoDB
+const chatRoomSchema = new mongoose.Schema({
+    roomName: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+  });
+// Create a Mongoose model for the "chatroom" collection
+export const Chatroom = mongoose.model('ChatRoom', chatRoomSchema);
+
+// Define a message schema for MongoDB
+const messageSchema = new mongoose.Schema({
+    roomName: { type: String, required: false },
+    sender: { type: String, required: true },
+    recipient: { type: String, required: false }, // Only used for direct messages
+    message: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+  });
+  
+export const Message = mongoose.model('Message', messageSchema);
 
 const signup = async (req, res) => {
   try {
@@ -269,12 +320,139 @@ const allContacts = async (req, res) => {
   }
 };
 
+const createChatroom = async (req, res) => {
+    try {
+        console.log("Received chatroom creation request");
+
+        const { roomName } = req.body;
+
+        if (!roomName) {
+            console.log("Missing room name");
+            res.status(400).json({ message: "Missing room name field" });
+            return;
+        }
+
+        const existingRoom = await Chatroom.findOne({ roomName });
+        if (existingRoom) {
+            console.log("Room name already exists");
+            res.status(409).json({ message: "Room name already exists" });
+            return;
+        }
+
+        const newChatroom = new Chatroom({ roomName, createdAt: new Date()});
+        const savedChatroom = await newChatroom.save();
+
+        console.log("Chatroom created!", savedChatroom);
+        res.status(201).json({ message: "Chatroom created!"});
+    } catch (error) {
+        console.log("Chatroom creation error", error);
+        res.status(500).json({ message: "Internal server error"});
+    }
+};
+
+const getChatrooms = async (req, res) => {
+    try {
+        console.log("Received get all chatrooms request");
+
+        const chatroom_list = await Chatroom.find().exec();
+        
+        if (chatroom_list.length === 0) {
+            console.log("No chatrooms found");
+            res.status(400).json([]);
+        } else {
+            console.log("Chatrooms found!", chatroom_list);
+            res.status(200).json(chatroom_list);
+            
+        }
+    } catch (error) {
+        console.log("Get all chatrooms error", error);
+        res.status(500).json({ message: "Internal service error"});
+    }
+};
+
+const sendMessage = async (req, res) => {
+    try {
+        console.log("Received send message request");
+
+        const { roomName, sender, message } = req.body;
+
+        if (!roomName || !sender || !message) {
+            console.log("Missing roomName, sender, or message fields");
+            res.status(400).json({ message: "Mising roomName, sender, or message fields"});
+            return;
+        }
+
+        const newMessage = new Message({ roomName, sender, message });
+        const savedMessage = await newMessage.save();
+
+        console.log("Message saved", savedMessage);
+        res.status(200).json({ message: "Message saved" });
+    } catch (error) {
+        console.log("Send message error", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
+
+// Socket.IO Connection
+io.on('connection', socket => {
+    console.log('A user connected');
+  
+    // Join a chat room
+    socket.on('joinRoom', roomName => {
+      socket.join(roomName);
+      console.log(`User joined room: ${roomName}`);
+  
+    /*
+      // Fetch and send the message history from MongoDB
+      Message.find({ roomName })
+        .sort({ timestamp: 1 })
+        .limit(50)
+        .then(messages => {
+          socket.emit('chatHistory', messages); // Emit chat history to client
+        });*/
+    });
+  
+    // Listen for new messages from the client
+    socket.on('sendMessage', async (data) => {
+        const { roomName, sender, message } = data;
+
+        const newMessage = new Message({ roomName, sender, message, timestamp: new Date()});
+        //const savedMessage = await newMessage.save(); // Save message to MongoDB
+
+        try {
+            await newMessage.save();
+            console.log("Message saved to MongoDB", newMessage);
+            
+             // Broadcast the new message to all clients in the room
+            io.to(roomName).emit('newMessage', newMessage);
+        } catch (error){
+            console.error("Error saving message", error);
+        }
+  
+     
+    });
+
+    
+  
+    // Handle disconnect event
+    socket.on('disconnect', () => {
+      console.log('User disconnected');
+    });
+  });
+
+
 
 // Define the router and endpoint
 const authRoutes = Router();
 const contactRoutes = Router();
+const chatroomRoutes = Router();
+const messageRoutes = Router();
 app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactRoutes);
+app.use("/api/chatrooms", chatroomRoutes);
+app.use("/api/messages", messageRoutes);
 
 // POST /api/auth/signup
 authRoutes.post("/signup", signup);
@@ -296,6 +474,14 @@ contactRoutes.post("/search", search);
 
 // GET /api/contacts/all-contacts
 contactRoutes.get("/all-contacts", allContacts);
+
+// POST /api/chatrooms/create
+chatroomRoutes.post("/create", createChatroom);
+
+// GET /api/chatrooms/get-chatrooms
+chatroomRoutes.get("/get-chatrooms", getChatrooms);
+
+messageRoutes.post("/send-message", sendMessage);
 
 /**
  * connectDB:
