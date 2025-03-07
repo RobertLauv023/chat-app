@@ -45,6 +45,9 @@ async function callUpdateProfile() {
     // 7) Success response
     console.log("Profile update successful:", response.data);
     alert("Profile updated!");
+
+    localStorage.setItem('firstName', firstName);
+    localStorage.setItem('lastName', lastName);
   } catch (error) {
     // 8) Handle errors
     console.log("Profile update error:", error);

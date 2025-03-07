@@ -42,7 +42,6 @@ async function callLogin() {
 
     localStorage.setItem('jwt_token', response.data.token);
 
-
     window.location.href = "homepage.html";
   } catch (error) {
     // 8) Handle errors
