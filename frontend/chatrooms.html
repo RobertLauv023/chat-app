@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chat App</title>
   <style>
+    /* Existing styles remain the same */
     * {
       margin: 0;
       padding: 0;
@@ -155,6 +156,35 @@
       color: white;
     }
 
+    /* Popup style */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 8px;
+      color: white;
+      width: 300px;
+      text-align: center;
+    }
+
+    .popup button {
+      padding: 10px;
+      font-size: 1rem;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    .popup button:hover {
+      background-color: #0056b3;
+    }
+
   </style>
 </head>
 <body>
@@ -162,20 +192,19 @@
   <h1>Welcome to the Chat App</h1>
 
   <div class="main-container">
-    <!-- Sidebar for chat rooms -->
     <div class="sidebar">
-      <!-- Create Chatroom Section moved to the top -->
       <input type="text" id="room-name" placeholder="Enter chat room name">
       <button id="createButton">Create Chatroom</button>
 
       <h2>Chat Rooms</h2>
       <button id="fetchChatRoomsBtn">Fetch All Chat Rooms</button>
 
-      <!-- List of chat rooms will be displayed here -->
       <ul id="chatRoomList"></ul>
+
+      <!-- New Delete Button at the bottom of the sidebar -->
+      <button id="deleteRoomBtn">Delete Chatroom</button>
     </div>
 
-    <!-- Main content area (active chat room) -->
     <div class="chat-area">
       <div id="chatWindow" class="chat-window" style="display: none;">
         <div class="chat-header" id="chatRoomNameHeader"></div>
@@ -183,61 +212,71 @@
 
         <div class="chat-input">
           <input type="text" id="messageInput" placeholder="Type a message" />
-          <!--<button onclick="sendMessageToRoom()">Send</button>-->
           <button id="sendMessage">Send</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Include Socket.io Client -->
-  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <!-- Popup for delete room input -->
+  <div id="deletePopup" class="popup">
+    <p>Enter the name of the chatroom to delete:</p>
+    <input type="text" id="deleteRoomName" placeholder="">
+    <button id="confirmDelete">Delete</button>
+    <button id="cancelDelete">Cancel</button>
+  </div>
 
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
   <script type="module">
     import axios from "axios";
 
-    const socket = io("http://localhost:8747"); // Connecting to the Socket.io server
+    const socket = io("http://localhost:8747");
 
     document.getElementById('createButton').addEventListener('click', callCreateChatroom);
     document.getElementById('fetchChatRoomsBtn').addEventListener('click', fetchChatRooms);
     document.getElementById('sendMessage').addEventListener('click', sendMessageToRoom);
+    document.getElementById('deleteRoomBtn').addEventListener('click', openDeletePopup); // Open delete popup
+    document.getElementById('confirmDelete').addEventListener('click', callDeleteChatroom);
+    document.getElementById('cancelDelete').addEventListener('click', closeDeletePopup);
+
+    let chatRoomToDelete = null; // Store the room to delete when user confirms
 
     // Function to create a new chat room
     async function callCreateChatroom() {
-        const SERVER_URL = "http://localhost:8747";
-        const roomInput = document.getElementById("room-name");
+      const SERVER_URL = "http://localhost:8747";
+      const roomInput = document.getElementById("room-name");
 
-        const roomName = roomInput.value.trim();
+      const roomName = roomInput.value.trim();
 
-        if (!roomName) {
-            alert("Error: Missing room name");
-            return;
-        }
+      if (!roomName) {
+        alert("Error: Missing room name");
+        return;
+      }
 
-        try {
-            const response = await axios.post(
-                `${SERVER_URL}/api/chatrooms/create`,
-                { roomName },
-                { headers: { "Content-Type": "application/json" } }
-            );
+      try {
+        const response = await axios.post(
+          `${SERVER_URL}/api/chatrooms/create`,
+          { roomName },
+          { headers: { "Content-Type": "application/json" } }
+        );
 
-            if (response.status === 201) {
-                alert("Chatroom created!");
-                roomInput.value = "";  // Clear the "Create Chatroom" text field after creation
-                fetchChatRooms();  // Refetch the chat rooms to display the new one
-            }
-        } catch (error) {
-            console.error("Chatroom creation error", error);
-        }
-    };
+        if (response.status === 201) {
+          alert("Chatroom created!");
+          roomInput.value = "";
+          fetchChatRooms();
+        } 
+        
+      } catch (error) {
+        console.error("Chatroom creation error", error);
+      }
+    }
 
     // Function to fetch and display all chat rooms
     async function fetchChatRooms() {
       const SERVER_URL = "http://localhost:8747";
-      
+
       try {
         const response = await axios.get(`${SERVER_URL}/api/chatrooms/get-chatrooms`);
-        
         if (response.status === 200) {
           displayChatRooms(response.data);
         }
@@ -249,27 +288,82 @@
     // Function to display chat rooms on the page
     function displayChatRooms(chatRooms) {
       const chatRoomList = document.getElementById('chatRoomList');
-      chatRoomList.innerHTML = '';  // Clear any existing chat rooms
+      chatRoomList.innerHTML = '';
 
       chatRooms.forEach(room => {
         const listItem = document.createElement('li');
         listItem.textContent = room.roomName;
-
-        // Add click event listener to join the chat room when clicked
         listItem.addEventListener('click', () => {
           openChatWindow(room.roomName);
           highlightActiveRoom(listItem);
-          joinChatRoom(room.roomName);  // Emit the event to join the room
+          //joinChatRoom(room.roomName);
         });
 
         chatRoomList.appendChild(listItem);
       });
     }
+    let currentRoom = ""; // This will track the room the user is currently in'
 
     // Function to open the chat window for the selected room
     function openChatWindow(roomName) {
+      const chatContent = document.getElementById('chatWindowContent');
+
+       // Clear previous messages when switching rooms
+      chatContent.innerHTML = ''; 
+
+
       document.getElementById('chatRoomNameHeader').textContent = `Chat Room: ${roomName}`;
       document.getElementById('chatWindow').style.display = 'flex';
+      //chatContent.innerHTML = ''; // This clears the previous messages
+
+      currentRoom = roomName; // Store the room name when opening a new room
+      joinChatRoom(roomName);  // Ensure the user joins the correct room
+
+      getMessageHistory(currentRoom);
+    }
+
+
+    // Function to open the delete room popup
+    function openDeletePopup() {
+      document.getElementById('deletePopup').style.display = 'block';
+    }
+
+    // Function to close the delete room popup
+    function closeDeletePopup() {
+      document.getElementById('deletePopup').style.display = 'none';
+    }
+
+    
+
+    // Function to delete a chatroom
+    async function callDeleteChatroom() {
+      const SERVER_URL = "http://localhost:8747";
+
+      const roomInput = document.getElementById("deleteRoomName");
+
+      const roomName = roomInput.value.trim();
+
+      if (!roomName) {
+        alert("Please enter a room name.");
+        return;
+      }
+
+      try {
+        const response = await axios.delete(
+        `${SERVER_URL}/api/chatrooms/delete-chatrooms`,
+        { data: { roomName: roomName } },
+        );
+
+        if (response.status === 200) {
+          alert("Chatroom deleted!");
+          fetchChatRooms(); // Refetch the chat rooms after deletion
+        }
+      } catch (error) {
+        alert("Error deleting chatroom");
+        console.error(error);
+      }
+
+      closeDeletePopup();
     }
 
     // Function to highlight the active chat room
@@ -283,49 +377,63 @@
     async function sendMessageToRoom() {
       const SERVER_URL = "http://localhost:8747";
       const message = document.getElementById('messageInput').value.trim();
-      const roomName = document.getElementById('chatRoomNameHeader').textContent.replace("Chat Room: ", "");  // Retrieve the room name dynamically
-      const sender = "test";
+      //const roomName = document.getElementById('chatRoomNameHeader').textContent.replace("Chat Room: ", "");
+      const roomName = currentRoom;
 
-      
       if (message && roomName) {
-        // Emit the message to the server
-        socket.emit('sendMessage', { roomName, sender, message});
-
-        // Clear the input field
-        displayMessage(message, sender);
+        socket.emit('sendMessage', { roomName, sender: "test", message });
         document.getElementById('messageInput').value = '';
       }
+    }
 
-      /*
-      if (!roomName || !message || !sender) {
+    async function getMessageHistory() {
+      const SERVER_URL = "http://localhost:8747";
+
+      const roomName = currentRoom;
+
+      if (!roomName) {
+        alert("Room name not found");
         return;
       }
 
       try {
         const response = await axios.post(
-            `${SERVER_URL}/api/messages/send-message`,
-            { roomName, sender, message },
-            { headers: { "Content-Type": "application/json" } }  
+          `${SERVER_URL}/api/messages/get-messages`,
+          { roomName },
+          { headers: { "Content-Type": "application/json" }}
         );
-      } catch (error) {
-        console.log("Send message error", error);
-        return;
-      }
-        */
-    }
       
 
+        const chatContent = document.getElementById('chatWindowContent');
+        const messages = response.data;
+
+        messages.forEach(msg => {
+          const messageElement = document.createElement('div');
+          messageElement.textContent = `${msg.sender}: ${msg.message}`;
+          chatContent.appendChild(messageElement);
+        });
+
+        chatContent.scrollTop = chatContent.scrollHeight;
+
+      } catch (error) {
+        console.error("Get messages error");
+
+      }
+
+
+    }
 
 
     // Function to join a chat room via Socket.io
     function joinChatRoom(roomName) {
-      socket.emit('joinRoom', roomName);  // Join the selected room
+      socket.emit('joinRoom', roomName);
     }
 
     // Listen for incoming messages
     socket.on("newMessage", (data) => {
         const { roomName, sender, message } = data;
 
+        if (roomName === currentRoom) {
        // Get chat window for current room
          const chatContent = document.getElementById('chatWindowContent');
 
@@ -337,6 +445,7 @@
       chatContent.appendChild(messageElement);
       
       chatContent.scrollTop = chatContent.scrollHeight;
+        }
     });
 
   </script>

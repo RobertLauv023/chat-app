@@ -14,5 +14,7 @@ export const SEARCH_ALL = `${CONTACT_ROUTES}/all-contacts`;
 
 export const CREATE_CHATROOM = `${CHATROOM_ROUTES}/create`;
 export const GET_CHATROOMS_ROUTE = `${CHATROOM_ROUTES}/get-chatrooms`;
+export const DELETE_CHATROOMS_ROUTE = `${CHATROOM_ROUTES}/delete-chatrooms`;
 
 export const SEND_MESSAGE_ROUTE = `${MESSAGE_ROUTES}/send-message`;
+export const GET_MESSAGE_ROUTE = `${MESSAGE_ROUTES}/get-messages`;

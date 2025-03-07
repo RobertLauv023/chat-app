@@ -320,6 +320,7 @@ const allContacts = async (req, res) => {
   }
 };
 
+// Creates a chatroom by specified name
 const createChatroom = async (req, res) => {
     try {
         console.log("Received chatroom creation request");
@@ -335,7 +336,7 @@ const createChatroom = async (req, res) => {
         const existingRoom = await Chatroom.findOne({ roomName });
         if (existingRoom) {
             console.log("Room name already exists");
-            res.status(409).json({ message: "Room name already exists" });
+            res.status(400).json({ message: "Room name already exists" });
             return;
         }
 
@@ -350,6 +351,7 @@ const createChatroom = async (req, res) => {
     }
 };
 
+// Get a list of all of the chatrooms
 const getChatrooms = async (req, res) => {
     try {
         console.log("Received get all chatrooms request");
@@ -370,6 +372,40 @@ const getChatrooms = async (req, res) => {
     }
 };
 
+// Delete a specified chatroom by name, and in turn, deleting any messages
+// associated with that chat room
+const deleteChatrooms = async (req, res) => {
+  try {
+    console.log("Received chatroom deletion request");
+
+    const { roomName } = req.body;
+
+    if (!roomName) {
+      console.log("Missing or invalid room name field");
+      res.status(400).json({ message: "Missing or invalid room name field" });
+      return;
+    }
+
+    const deletedRoom = await Chatroom.deleteOne({ roomName });
+    const deletedMessages = await Message.deleteMany({ roomName });
+
+    if (deletedRoom.deletedCount === 0) {
+      console.log("Chatroom does not exist");
+      res.status(400).json({ message: "Chatroom does not exist" });
+      return;
+    }
+
+    console.log("Chatroom deleted!", deletedRoom);
+    res.status(200).json({ message: "Chatroom successfully deleted!"});
+  } catch (error) {
+    console.log("Error deleting chatroom", error);
+    res.status(500).json({ message: "Internal server error "});
+  }
+
+};
+
+
+// Send a message within a chat room
 const sendMessage = async (req, res) => {
     try {
         console.log("Received send message request");
@@ -393,6 +429,36 @@ const sendMessage = async (req, res) => {
     }
 };
 
+// Get the message history for the specified chat room when
+// a user enters a chat room
+const getMessages = async (req, res) => {
+  try {
+    console.log("Received get message request");
+
+    const { roomName } = req.body;
+
+    if (!roomName) {
+      console.log("Missing roon name or room doesn't exist");
+      res.status(400).json({ message: "Missing room name or room doesn't exist"});
+      return;
+    }
+
+    const message_search = await Message.find({ roomName: roomName }).exec();
+
+    if (message_search.length === 0) {
+      console.log("No messages found");
+      res.status(200).json([]);
+    } else {
+      console.log("Messages found", message_search);
+      res.status(200).json(message_search);
+    }
+
+  } catch (error) {
+    console.log("Error getting messages", error);
+    res.status(500).json({ message: "Internal server error "});
+  }
+
+};
 
 
 // Socket.IO Connection
@@ -481,7 +547,14 @@ chatroomRoutes.post("/create", createChatroom);
 // GET /api/chatrooms/get-chatrooms
 chatroomRoutes.get("/get-chatrooms", getChatrooms);
 
+// DELETE /api/chatrooms/delete-chatrooms
+chatroomRoutes.delete("/delete-chatrooms", deleteChatrooms);
+
+// POST /api/messages/send-message
 messageRoutes.post("/send-message", sendMessage);
+
+// POST /api/messages/get-messages
+messageRoutes.post("/get-messages", getMessages);
 
 /**
  * connectDB:
