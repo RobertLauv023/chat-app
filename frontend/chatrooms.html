@@ -193,7 +193,7 @@
 
   <div class="main-container">
     <div class="sidebar">
-      <input type="text" id="room-name" placeholder="Enter chat room name">
+      <input type="text" id="room-name" maxlength="20" placeholder="Enter chat room name">
       <button id="createButton">Create Chatroom</button>
 
       <h2>Chat Rooms</h2>
@@ -211,7 +211,7 @@
         <div id="chatWindowContent" class="chat-messages"></div>
 
         <div class="chat-input">
-          <input type="text" id="messageInput" placeholder="Type a message" />
+          <input type="text" id="messageInput" maxlength="100" placeholder="Type a message" />
           <button id="sendMessage">Send</button>
         </div>
       </div>
@@ -221,7 +221,7 @@
   <!-- Popup for delete room input -->
   <div id="deletePopup" class="popup">
     <p>Enter the name of the chatroom to delete:</p>
-    <input type="text" id="deleteRoomName" placeholder="">
+    <input type="text" id="deleteRoomName" maxlength="20" placeholder="">
     <button id="confirmDelete">Delete</button>
     <button id="cancelDelete">Cancel</button>
   </div>
@@ -250,7 +250,8 @@
       const SERVER_URL = "http://localhost:8747";
       const roomInput = document.getElementById("room-name");
 
-      const roomName = roomInput.value.trim();
+      const roomName_sanitize = roomInput.value.trim();
+      const roomName = escapeHtml(roomName_sanitize);
 
       if (!roomName) {
         alert("Error: Missing room name");
@@ -296,9 +297,12 @@
 
       chatRooms.forEach(room => {
         const listItem = document.createElement('li');
-        listItem.textContent = room.roomName;
+        const decodedRoom = decodeHtmlEntities(room.roomName);
+        //listItem.textContent = room.roomName;
+        listItem.textContent = decodedRoom;
         listItem.addEventListener('click', () => {
-          openChatWindow(room.roomName);
+          //openChatWindow(room.roomName);
+          openChatWindow(decodedRoom);
           highlightActiveRoom(listItem);
           //joinChatRoom(room.roomName);
         });
@@ -345,7 +349,8 @@
 
       const roomInput = document.getElementById("deleteRoomName");
 
-      const roomName = roomInput.value.trim();
+      const roomName_sanitize = roomInput.value.trim();
+      const roomName = escapeHtml(roomName_sanitize);
 
       if (!roomName) {
         alert("Please enter a room name.");
@@ -380,9 +385,10 @@
     // Function to send a message to the chat room
     async function sendMessageToRoom() {
       const SERVER_URL = "http://localhost:8747";
-      const message = document.getElementById('messageInput').value.trim();
-      //const roomName = document.getElementById('chatRoomNameHeader').textContent.replace("Chat Room: ", "");
-      const roomName = currentRoom;
+      const message_sanitize = document.getElementById('messageInput').value.trim();
+      const message = escapeHtml(message_sanitize);
+      const roomName_sanitize = currentRoom;
+      const roomName = escapeHtml(roomName_sanitize);
       let username = localStorage.getItem('firstName');
 
       if (message && roomName) {
@@ -392,10 +398,13 @@
       }
     }
 
+    // Get all of the messages that have been sent in the current chat room
     async function getMessageHistory() {
       const SERVER_URL = "http://localhost:8747";
 
-      const roomName = currentRoom;
+      const roomName_sanitize = currentRoom;
+      const roomName = escapeHtml(roomName_sanitize);
+
 
       if (!roomName) {
         alert("Room name not found");
@@ -415,7 +424,8 @@
 
         messages.forEach(msg => {
           const messageElement = document.createElement('div');
-          messageElement.textContent = `${msg.sender}: ${msg.message}`;
+          const decodedMessage = decodeHtmlEntities(msg.message);
+          messageElement.textContent = `${msg.sender}: ${decodedMessage}`;
           chatContent.appendChild(messageElement);
         });
 
@@ -445,14 +455,38 @@
 
       // Create div element to display message
       const messageElement = document.createElement('div');
-        //messageElement.textContent = data.message;
-        messageElement.textContent = `${sender}: ${message}`; // Sending message
+        const decodedMessage = decodeHtmlEntities(message);
+        messageElement.textContent = `${sender}: ${decodedMessage}`; // Sending message
 
       chatContent.appendChild(messageElement);
       
       chatContent.scrollTop = chatContent.scrollHeight;
         }
     });
+
+    // Escape Html chars to prevent injection attacks
+    function escapeHtml(str) {
+    return str.replace(/[&<>"'`=\/]/g, function(match) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&apos;',
+            '`': '&#96;',
+            '=': '&#61;',
+            '/': '&#47;'
+        };
+        return map[match];
+    });
+}
+
+// When attempting to display messages/string w/ html, turn them back into their original character
+function decodeHtmlEntities(str) {
+  const doc = new DOMParser().parseFromString(str, 'text/html');
+  return doc.documentElement.textContent || doc.body.textContent;
+}
+
 
   </script>
 

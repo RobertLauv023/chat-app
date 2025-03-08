@@ -17,8 +17,11 @@ async function callUpdateProfile() {
   }
 
   // 3) Extract values
-  const firstName = firstNameInput.value.trim();
-  const lastName = lastNameInput.value.trim();
+  const firstName_sanitize = firstNameInput.value.trim();
+  const lastName_sanitize = lastNameInput.value.trim();
+
+  const firstName = escapeHtml(firstName_sanitize);
+  const lastName = escapeHtml(lastName_sanitize);
 
   // 4) Validate inputs
   if (!firstName || !lastName) {
@@ -56,6 +59,23 @@ async function callUpdateProfile() {
     alert(`Profile update error: ${message}`);
   }
 }
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"'`=\/]/g, function(match) {
+      const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&apos;',
+          '`': '&#96;',
+          '=': '&#61;',
+          '/': '&#47;'
+      };
+      return map[match];
+  });
+}
+
 
 // Attach function globally (for debugging in console)
 window.callUpdateProfile = callUpdateProfile;

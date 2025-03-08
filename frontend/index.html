@@ -110,7 +110,7 @@
         <div id="login-form" class="form-content active">
             <h2>Login</h2>
             <body>
-                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="email" id="login-email" maxlength="50" placeholder="Email" required>
                 <input type="password" id="login-password" placeholder="Password" required>
                 <button onclick="callTheLogin()">Log in</button>
                 <script type="module" src="./login.js" defer></script>
@@ -121,7 +121,7 @@
         <div id="register-form" class="form-content">
             <h2>Register</h2>
             <body>
-                <input type="email" id="register-email" placeholder="Email" required>
+                <input type="email" id="register-email" maxlength="50" placeholder="Email" required>
                 <input type="password" id="register-password" placeholder="Password" required>
                 <button onclick="callSignup()">Sign up</button>
                 <script type="module" src="./signup.js" defer></script>

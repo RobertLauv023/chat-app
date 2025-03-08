@@ -233,7 +233,6 @@
           <button>Profile</button>
           <div class="dropdown-content">
             <button onclick="displayUserProfile()">Get Profile</button>
-            <!--<script type="module" src="./userinfo.js" defer></script>-->
             <button onclick="openProfileModal()">Update Profile</button>
           </div>
         </div>
@@ -259,10 +258,10 @@
       <span class="close">&times;</span>
       <h2>Update Your Profile</h2>
       <label for="firstName">First Name:</label>
-      <input type="text" id="firstName" name="firstName" placeholder="Enter your first name">
+      <input type="text" id="firstName" name="firstName" maxlength="20" placeholder="Enter your first name">
       <br>
       <label for="lastName">Last Name:</label>
-      <input type="text" id="lastName" name="lastName" placeholder="Enter your last name">
+      <input type="text" id="lastName" name="lastName" maxlength="20" placeholder="Enter your last name">
       <br>
       <button onclick="callUpdateProfile()">Update Profile</button>
       <script type="module" src="./updateProfile.js" defer></script>
@@ -282,6 +281,7 @@
 
   <script>
 
+    // Get user info as soon as the page loads
     document.addEventListener('DOMContentLoaded', function() {
           callUserInfo();
     })

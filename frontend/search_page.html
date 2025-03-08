@@ -160,7 +160,7 @@
 
 <div class="container">
     <div class="search-box">
-        <input type="text" id="search-term" placeholder="Enter name or email..." />
+        <input type="text" id="search-term" maxlength="20" placeholder="Enter name or email..." />
         <button id="myButton">Search specific users</button>
         <button id="allButton">Search all users</button>
     </div>
@@ -184,6 +184,7 @@
     // Event listener to search for all users
     document.getElementById('allButton').addEventListener('click', callSearchAll)
 
+    // Search for speficic users by string
     async function callTheSearch() {
         const SERVER_URL = "http://localhost:8747";
         const searchInput = document.getElementById("search-term");
@@ -194,7 +195,8 @@
             return;
         }
 
-        const searchTerm = searchInput.value.trim();
+        const searchTerm_sanitized = searchInput.value.trim();
+        const searchTerm = escapeHtml(searchTerm_sanitized);
 
         try {
             const response = await axios.post(
@@ -212,6 +214,7 @@
         }
     }
 
+    /// Get a list of all users except self
     async function callSearchAll() {
         const SERVER_URL = "http://localhost:8747";
         const token = localStorage.getItem('jwt_token');
@@ -233,6 +236,7 @@
         }
     }
 
+    // Display a list of users after searching
     function displayUsers(users) {
         const userBox = document.getElementById('userBox');
         const userList = document.getElementById('userList');
@@ -264,9 +268,27 @@
         }
     }
 
+    // Send a dm to a user
     function sendMessage(userEmail) {
         alert(`Message will be sent to ${userEmail}`);
     }
+
+    // Sanitize user input to avoid code injection
+    function escapeHtml(str) {
+    return str.replace(/[&<>"'`=\/]/g, function(match) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&apos;',
+            '`': '&#96;',
+            '=': '&#61;',
+            '/': '&#47;'
+        };
+        return map[match];
+    });
+}
 </script>
 
 </body>

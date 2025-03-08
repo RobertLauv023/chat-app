@@ -16,7 +16,9 @@ async function callLogin() {
   }
 
   // 3) Extract values
-  const email = emailInput.value.trim();
+  const email_sanitized = emailInput.value.trim();
+  //const email = emailInput.value.trim();
+  const email = escapeHtml(email_sanitized);
   const password = passwordInput.value.trim();
 
   // 4) Validate inputs
@@ -50,6 +52,23 @@ async function callLogin() {
       error.response?.data?.message || error.message || "Unknown error";
     alert(`Login error: ${message}`);
   }
+}
+
+// Sanitize user inputs to avoid code injection
+function escapeHtml(str) {
+  return str.replace(/[&<>"'`=\/]/g, function(match) {
+      const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&apos;',
+          '`': '&#96;',
+          '=': '&#61;',
+          '/': '&#47;'
+      };
+      return map[match];
+  });
 }
 
 // Attach function globally (for debugging in console)
