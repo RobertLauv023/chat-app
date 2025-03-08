@@ -4,13 +4,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import * as bcrypt from 'bcrypt'
 import jsonwebtoken from 'jsonwebtoken';
-//import * as socketIo from 'socket.io';
-//import socketIo from 'socket.io';
-//import server from './index.js';
-//import { app as server } from "./index.js";
-//import { server } from "./index.js";
 import  { Server as SocketServer } from "socket.io";
-import http from 'http';
 
 const secretKey = 'ALDNVBLSIKEJ123KFJ#$K!KJFDLK@J#!'
 const expiresIn = '1h';
@@ -20,8 +14,6 @@ dotenv.config(); // Load environment variables from .env file
 const app = express(); // Create an Express application
 const PORT = process.env.PORT || 8747; // Define the port number (from environment variables or default 8747)
 const DATABASE_URL = process.env.DATABASE_URL; // Load MongoDB connection string from environment variables
-
-//const server_test = http.createServer(server);
 
 
 // Middleware to enable CORS (Cross-Origin Resource Sharing)
@@ -96,6 +88,7 @@ const messageSchema = new mongoose.Schema({
   
 export const Message = mongoose.model('Message', messageSchema);
 
+// Function to deal with user signup and saving into MongoDB
 const signup = async (req, res) => {
   try {
     console.log("Received signup request:", req.body); // Log incoming request body
@@ -186,7 +179,7 @@ const logout = async (req, res) => {
   }
 };
 
-// Displays user first and last name
+// Gets information about the currently logged in user
 const userinfo = async (req, res) => {
 
   const token = req.headers['Authorization'] || req.headers['authorization'].split(' ')[1];;
@@ -469,15 +462,6 @@ io.on('connection', socket => {
     socket.on('joinRoom', roomName => {
       socket.join(roomName);
       console.log(`User joined room: ${roomName}`);
-  
-    /*
-      // Fetch and send the message history from MongoDB
-      Message.find({ roomName })
-        .sort({ timestamp: 1 })
-        .limit(50)
-        .then(messages => {
-          socket.emit('chatHistory', messages); // Emit chat history to client
-        });*/
     });
   
     // Listen for new messages from the client
@@ -485,7 +469,6 @@ io.on('connection', socket => {
         const { roomName, sender, message } = data;
 
         const newMessage = new Message({ roomName, sender, message, timestamp: new Date()});
-        //const savedMessage = await newMessage.save(); // Save message to MongoDB
 
         try {
             await newMessage.save();

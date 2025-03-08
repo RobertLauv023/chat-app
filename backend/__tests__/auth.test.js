@@ -267,8 +267,8 @@ describe("GET /api/auth", () => {
 
     /**
    * 8) Test the success scenario:
-   *    Test the scenario where the logout was successful
-   *    The endpoint should respond with a 200 and a success message.
+   *    Test the scenario where the get user info was successful
+   *    The endpoint should respond with a 200.
    */
   it("should return 200 if user data found", async () => {
     // Manually create user in mongodb
@@ -293,7 +293,7 @@ describe("GET /api/auth", () => {
    *    Test the scenario where user token invalid or user doesn't exist
    *    The endpoint should respond with a 404 and an error message.
    */
-  it("should return 200 if user data found", async () => {
+  it("should return 404 if user data not found", async () => {
     const ser = await request(app)
       .post("/api/auth/signup")
       .send({ email: "trial@example.com", password: "secret123" });
