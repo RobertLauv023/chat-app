@@ -28,6 +28,7 @@ app.use(
 app.use(express.json());
 
 
+// ------ Comment out below to try tests -------------------------
 
 await connectDB(DATABASE_URL);
 console.log("MongoDB connected successfully");
@@ -46,6 +47,7 @@ const server = app.listen(PORT, () => {
         },
       });
 
+// ---------------------------------------------------------------
 
 // Define a user schema for MongoDB
 const userSchema = new mongoose.Schema({
@@ -269,7 +271,7 @@ const search = async (req, res) => {
         { firstName: { $regex: regex } }, 
         { lastName: { $regex: regex } }
       ]
-    }).exec();
+    });
 
     
     if (user_search.length === 0) {
@@ -349,7 +351,8 @@ const getChatrooms = async (req, res) => {
     try {
         console.log("Received get all chatrooms request");
 
-        const chatroom_list = await Chatroom.find().exec();
+        //const chatroom_list = await Chatroom.find().exec();
+        const chatroom_list = await Chatroom.find();
         
         if (chatroom_list.length === 0) {
             console.log("No chatrooms found");
@@ -436,7 +439,7 @@ const getMessages = async (req, res) => {
       return;
     }
 
-    const message_search = await Message.find({ roomName: roomName }).exec();
+    const message_search = await Message.find({ roomName: roomName });
 
     if (message_search.length === 0) {
       console.log("No messages found");
@@ -453,6 +456,7 @@ const getMessages = async (req, res) => {
 
 };
 
+//------- Comment out below to try tests -------------------------------------------------------
 
 // Socket.IO Connection
 io.on('connection', socket => {
@@ -482,8 +486,6 @@ io.on('connection', socket => {
   
      
     });
-
-    
   
     // Handle disconnect event
     socket.on('disconnect', () => {
@@ -491,7 +493,7 @@ io.on('connection', socket => {
     });
   });
 
-
+//--------------- END --------------------------------------------------------------------------------
 
 // Define the router and endpoint
 const authRoutes = Router();

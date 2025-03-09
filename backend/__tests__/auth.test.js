@@ -117,11 +117,11 @@ describe("POST /api/auth", () => {
     // First manually create the user-document for in memory DB
     const ser = await request(app)
       .post("/api/auth/signup")
-      .send({ email: "trial@example.com", password: "secret123" });
+      .send({ email: "trial6@example.com", password: "secret123" });
 
     const res = await request(app)
     .post("/api/auth/login")
-    .send({ email: "trial@example.com", password: "secret123" });
+    .send({ email: "trial6@example.com", password: "secret123" });
   
 
   // We expect a (200) Login success code
@@ -184,12 +184,12 @@ describe("POST /api/auth", () => {
     // Manually create user in mongodb
     const ser = await request(app)
       .post("/api/auth/signup")
-      .send({ email: "trial@example.com", password: "secret123" });
+      .send({ email: "trial7@example.com", password: "secret123" });
 
     // Login to get the JWT token
     const response = await request(app)
       .post("/api/auth/login")
-      .send({ email: "trial@example.com", password: "secret123" });
+      .send({ email: "trial7@example.com", password: "secret123" });
        token = response.body.token;
 
     // Test updating profile w/ firstName and lastName
@@ -211,12 +211,12 @@ describe("POST /api/auth", () => {
     // Manually create user in mongodb
     const ser = await request(app)
       .post("/api/auth/signup")
-      .send({ email: "trial@example.com", password: "secret123" });
+      .send({ email: "trial8@example.com", password: "secret123" });
 
     // Login to get the JWT token
     const response = await request(app)
       .post("/api/auth/login")
-      .send({ email: "trial@example.com", password: "secret123" });
+      .send({ email: "trial8@example.com", password: "secret123" });
        token = response.body.token;
 
     // Test updating profile w/ firstName and lastName
@@ -274,11 +274,11 @@ describe("GET /api/auth", () => {
     // Manually create user in mongodb
     const ser = await request(app)
       .post("/api/auth/signup")
-      .send({ email: "trial@example.com", password: "secret123" });
+      .send({ email: "trial9@example.com", password: "secret123" });
 
     const response = await request(app)
       .post("/api/auth/login")
-      .send({ email: "trial@example.com", password: "secret123" });
+      .send({ email: "trial9@example.com", password: "secret123" });
        token = response.body.token;
 
     const res = await request(app)
@@ -293,25 +293,26 @@ describe("GET /api/auth", () => {
    *    Test the scenario where user token invalid or user doesn't exist
    *    The endpoint should respond with a 404 and an error message.
    */
-  it("should return 404 if user data not found", async () => {
+  it("should return 500 if an error occurs", async () => {
     const ser = await request(app)
       .post("/api/auth/signup")
-      .send({ email: "trial@example.com", password: "secret123" });
+      .send({ email: "trial10@example.com", password: "secret123" });
 
     const response = await request(app)
       .post("/api/auth/login")
-      .send({ email: "trial@example.com", password: "secret123" });
-       token = response.body.token;
+      .send({ email: "trial10@example.com", password: "secret123" });
+       //token = response.body.token;
 
-    decoded = jsonwebtoken.decode(token, { complete: true});
+    //decoded = jsonwebtoken.decode(token, { complete: true});
 
-    decoded.payload.sub = "changed_value";
+    //decoded.payload.sub = "changed_value";
+    token = 1;
 
     const res = await request(app)
       .get("/api/auth/userinfo")
-      .set('Authorization', `Bearer ${decoded}`);
+      .set('Authorization', `Bearer ${token}`);
 
-      expect(res.status).toBe(404);
-      expect(res.body.message).toBe( "Profile not found" );
+      expect(res.status).toBe(500);
+      expect(res.body.message).toBe( "Unexpected server error" );
   });
 });
