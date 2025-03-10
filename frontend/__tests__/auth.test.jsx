@@ -1,11 +1,3 @@
-/**
- * We import `apiClient` from our custom library, which is then mocked.
- * We also import testing utilities from React Testing Library:
- *  - `render` to mount components in a simulated DOM,
- *  - `screen` to query the DOM,
- *  - `waitFor` to handle asynchronous state updates.
- * We use `@testing-library/jest-dom` for specialized matchers like `.toBeInTheDocument()`.
- */
 import apiClient from "@/lib/api-client";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -72,8 +64,6 @@ describe("Auth Page", () => {
      */
     const emailInput = screen.getByPlaceholderText(/email/i);
     const passwordInput = screen.getByPlaceholderText(/^password$/i);
-    //const confirmPasswordInput =
-    //  screen.getByPlaceholderText(/confirm password/i);
     const signupButton = screen.getByRole("button", { name: /signup/i });
 
     /**
@@ -82,7 +72,6 @@ describe("Auth Page", () => {
      */
     await userEvent.type(emailInput, "test@example.com");
     await userEvent.type(passwordInput, "password123");
-    //await userEvent.type(confirmPasswordInput, "password123");
 
     /**
      * Simulate a button click to trigger the Auth component's
@@ -122,8 +111,6 @@ describe("Auth Page", () => {
      */
     const emailInput = screen.getByPlaceholderText(/email/i);
     const passwordInput = screen.getByPlaceholderText(/^password$/i);
-    //const confirmPasswordInput =
-    //  screen.getByPlaceholderText(/confirm password/i);
     const signupButton = screen.getByRole("button", { name: /signup/i });
 
     /**
@@ -132,7 +119,6 @@ describe("Auth Page", () => {
      */
     await userEvent.type(emailInput, "test@example.com");
     await userEvent.type(passwordInput, "password123");
-    //await userEvent.type(confirmPasswordInput, "password123");
 
     userEvent.click(signupButton);
 
@@ -172,8 +158,6 @@ describe("Auth Page", () => {
      */
     const emailInput = screen.getByPlaceholderText(/email/i);
     const passwordInput = screen.getByPlaceholderText(/^password$/i);
-    //const confirmPasswordInput =
-    //  screen.getByPlaceholderText(/confirm password/i);
     const loginButton = screen.getByRole("button", { name: /login/i });
 
      /**
@@ -182,7 +166,6 @@ describe("Auth Page", () => {
      */
      await userEvent.type(emailInput, "tonari@gmail.com");
      await userEvent.type(passwordInput, "123");
-     //await userEvent.type(confirmPasswordInput, "password123");
  
      /**
       * Simulate a button click to trigger the Auth component's
@@ -192,7 +175,7 @@ describe("Auth Page", () => {
 
      /**
      * `waitFor` is used to handle asynchronous changes in the DOM.
-     * We wait until "Signup successful!" text appears,
+     * We wait until "login successful!" text appears,
      * confirming the component displays the success message.
      */
     await waitFor(() => {
@@ -207,8 +190,8 @@ describe("Auth Page", () => {
   test('displays error message when login fails ', async () => {
 
     /**
-     * Mocking the `apiClient.post` method to resolve with `{ status: 200 }`.
-     * This simulates an unsuccessful login response.
+     * Mocking the `apiClient.post` method to resolve with error.
+     * This simulates an error during login
      */
     apiClient.post.mockRejectedValue(new Error("Login failed"));
 
@@ -225,8 +208,6 @@ describe("Auth Page", () => {
      */
     const emailInput = screen.getByPlaceholderText(/email/i);
     const passwordInput = screen.getByPlaceholderText(/^password$/i);
-    //const confirmPasswordInput =
-    //  screen.getByPlaceholderText(/confirm password/i);
     const loginButton = screen.getByRole("button", { name: /login/i });
 
      /**
@@ -235,7 +216,6 @@ describe("Auth Page", () => {
      */
      await userEvent.type(emailInput, "fake@gmail.com");
      await userEvent.type(passwordInput, "12345");
-     //await userEvent.type(confirmPasswordInput, "password123");
  
      /**
       * Simulate a button click to trigger the Auth component's
@@ -245,7 +225,7 @@ describe("Auth Page", () => {
 
      /**
      * `waitFor` is used to handle asynchronous changes in the DOM.
-     * We wait until "Signup successful!" text appears,
+     * We wait until "Login failed\. Please try again\" text appears,
      * confirming the component displays the success message.
      */
     await waitFor(() => {
@@ -281,7 +261,7 @@ describe("Auth Page", () => {
 
      /**
      * `waitFor` is used to handle asynchronous changes in the DOM.
-     * We wait until "Signup successful!" text appears,
+     * We wait until "logout successful!" text appears,
      * confirming the component displays the success message.
      */
     await waitFor(() => {
@@ -296,8 +276,8 @@ describe("Auth Page", () => {
   test('displays error message when logout fails ', async () => {
 
     /**
-     * Mocking the `apiClient.post` method to resolve with `{ status: 200 }`.
-     * This simulates an unsuccessful login response.
+     * Mocking the `apiClient.post` method to resolve with error.
+     * This simulates an error during logout
      */
     apiClient.post.mockRejectedValue(new Error("Logout failed"));
 
@@ -317,7 +297,7 @@ describe("Auth Page", () => {
 
      /**
      * `waitFor` is used to handle asynchronous changes in the DOM.
-     * We wait until "Signup successful!" text appears,
+     * We wait until "Logout failed\. Please try again\" text appears,
      * confirming the component displays the success message.
      */
     await waitFor(() => {
@@ -333,7 +313,7 @@ describe("Auth Page", () => {
 
     /**
      * Mocking the `apiClient.post` method to resolve with `{ status: 200 }`.
-     * This simulates a successful logout response.
+     * This simulates a successful get info response
      */
     apiClient.post.mockResolvedValue({ status: 200 });
 
@@ -353,11 +333,11 @@ describe("Auth Page", () => {
 
      /**
      * `waitFor` is used to handle asynchronous changes in the DOM.
-     * We wait until "Signup successful!" text appears,
+     * We wait until "user data found" text appears,
      * confirming the component displays the success message.
      */
     await waitFor(() => {
-      expect(screen.getByText(/failed getting user info/i)).toBeInTheDocument();
+      expect(screen.getByText(/user data found/i)).toBeInTheDocument();
     });
   });
 
@@ -368,8 +348,8 @@ describe("Auth Page", () => {
   test('displays error message when get info fails', async () => {
 
     /**
-     * Mocking the `apiClient.post` method to resolve with `{ status: 200 }`.
-     * This simulates an unsuccessful login response.
+     * Mocking the `apiClient.post` method to resolve with error
+     * This simulates an error during get info
      */
     apiClient.post.mockRejectedValue(new Error("Failed to get user info"));
 
@@ -383,13 +363,13 @@ describe("Auth Page", () => {
  
      /**
       * Simulate a button click to trigger the Auth component's
-      * handleLogout function, which calls `apiClient.post`.
+      * handleGetInfo function, which calls `apiClient.post`.
       */
      userEvent.click(getInfoButton);
 
      /**
      * `waitFor` is used to handle asynchronous changes in the DOM.
-     * We wait until "Signup successful!" text appears,
+     * We wait until "Failed getting user info" text appears,
      * confirming the component displays the success message.
      */
     await waitFor(() => {
@@ -421,17 +401,14 @@ describe("Auth Page", () => {
      */
     const firstNameInput = screen.getByPlaceholderText(/firstName/i);
     const lastNameInput = screen.getByPlaceholderText(/lastName/i);
-    //const confirmPasswordInput =
-    //  screen.getByPlaceholderText(/confirm password/i);
     const updateProfileButton = screen.getByRole("button", { name: /updateprofile/i });
 
     /**
      * `userEvent.type` simulates typing into the input fields.
-     * We enter a valid email and matching passwords to mimic user input.
+     * We enter a first and last name to mimic user input
      */
     await userEvent.type(firstNameInput, "Thomas");
     await userEvent.type(lastNameInput, "Tank");
-    //await userEvent.type(confirmPasswordInput, "password123");
 
     /**
      * Simulate a button click to trigger the Auth component's
@@ -441,7 +418,7 @@ describe("Auth Page", () => {
 
     /**
      * `waitFor` is used to handle asynchronous changes in the DOM.
-     * We wait until "Signup successful!" text appears,
+     * We wait until "profile updated!" text appears,
      * confirming the component displays the success message.
      */
     await waitFor(() => {
@@ -455,8 +432,8 @@ describe("Auth Page", () => {
    */
   test('displays error when update profile fails', async () => {
     /**
-     * Mocking the `apiClient.post` method to resolve with `{ status: 200 }`.
-     * This simulates a successful update profile response.
+     * Mocking the `apiClient.post` error
+     * This simulates an error when updating the profile
      */
     apiClient.post.mockRejectedValue(new Error("Failed to update profile"));
 
@@ -473,27 +450,24 @@ describe("Auth Page", () => {
      */
     const firstNameInput = screen.getByPlaceholderText(/firstName/i);
     const lastNameInput = screen.getByPlaceholderText(/lastName/i);
-    //const confirmPasswordInput =
-    //  screen.getByPlaceholderText(/confirm password/i);
     const updateProfileButton = screen.getByRole("button", { name: /updateprofile/i });
 
     /**
      * `userEvent.type` simulates typing into the input fields.
-     * We enter a valid email and matching passwords to mimic user input.
+     * We enter a first and last name to mimc user input
      */
     await userEvent.type(firstNameInput, "Thomas");
     await userEvent.type(lastNameInput, "Tank");
-    //await userEvent.type(confirmPasswordInput, "password123");
 
     /**
      * Simulate a button click to trigger the Auth component's
-     * handleSignup function, which calls `apiClient.post`.
+     * handleUpdateProfile function, which calls `apiClient.post`.
      */
     userEvent.click(updateProfileButton);
 
     /**
      * `waitFor` is used to handle asynchronous changes in the DOM.
-     * We wait until "Signup successful!" text appears,
+     * We wait until "failed to update profile" text appears,
      * confirming the component displays the success message.
      */
     await waitFor(() => {

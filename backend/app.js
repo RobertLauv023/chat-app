@@ -262,6 +262,7 @@ const search = async (req, res) => {
     if (!searchTerm) {
       console.log("Missing search term");
       res.status(400).json({ message: "Missing search term" });
+      return;
     } else {
 
     const regex = new RegExp(searchTerm, 'i');
@@ -331,7 +332,7 @@ const createChatroom = async (req, res) => {
         const existingRoom = await Chatroom.findOne({ roomName });
         if (existingRoom) {
             console.log("Room name already exists");
-            res.status(400).json({ message: "Room name already exists" });
+            res.status(409).json({ message: "Room name already exists" });
             return;
         }
 
@@ -387,7 +388,7 @@ const deleteChatrooms = async (req, res) => {
 
     if (deletedRoom.deletedCount === 0) {
       console.log("Chatroom does not exist");
-      res.status(400).json({ message: "Chatroom does not exist" });
+      res.status(404).json({ message: "Chatroom does not exist" });
       return;
     }
 
