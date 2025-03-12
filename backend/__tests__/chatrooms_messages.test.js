@@ -59,8 +59,8 @@ describe("POST /api/chatrooms ", () => {
   });
 
   // Testing for unsuccessful creation of chat room due to duplicate name
-  // Test should return a status of 400 and a message "Room name already exists"
-  it("should not create a chat room and return status 400 if room name already exists", async() => {
+  // Test should return a status of 409 and a message "Room name already exists"
+  it("should not create a chat room and return status 409 if room name already exists", async() => {
 
     // Send POST request with chatroom of given name
     const ser = await request(app)
@@ -73,7 +73,7 @@ describe("POST /api/chatrooms ", () => {
         .send({ roomName: "NewRoom" });
 
     // Expect status of 400
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(409);
     // Expect message of "Chatroom created!"
     expect(res.body.message).toBe("Room name already exists");
   });
@@ -259,8 +259,8 @@ describe("DELETE /api/chatrooms ", () => {
     });
 
     // Testing out failure for delete chatrooms due to non-existent chat room
-  // Should return status 400 and message 'Missing or invalid room name field'
-  it("should return status 400 and a message 'Chatroom does not exist'", async() => {
+  // Should return status 404 and message 'Chatroom does not exist'
+  it("should return status 404 and a message 'Chatroom does not exist'", async() => {
     // Send POST request with chatroom of given name
     // to create a chatroom
     const ser = await request(app)
@@ -272,14 +272,14 @@ describe("DELETE /api/chatrooms ", () => {
         .delete("/api/chatrooms/delete-chatrooms")
         .send({ roomName: "FakeRoom" });
 
-    // Expect status to be 400
-    expect(res.status).toBe(400);
+    // Expect status to be 404
+    expect(res.status).toBe(404);
     expect(res.body.message).toBe("Chatroom does not exist");
     });
 
-    // Testing out failure for delete chatrooms due to non-existent chat room
-  // Should return status 400 and message 'Missing or invalid room name field'
-  it("should return status 400 and a message 'Chatroom does not exist'", async() => {
+    // Testing out failure for delete chatrooms due to error
+  // Should return "Internal server error"
+  it("should return internal service error when an error occurs during chat room deletion", async() => {
     // Send POST request with chatroom of given name
     // to create a chatroom
     const ser = await request(app)
@@ -293,7 +293,7 @@ describe("DELETE /api/chatrooms ", () => {
         .delete("/api/chatrooms/delete-chatrooms")
         .send({ roomName: "NewRoom" });
 
-    // Expect status to be 400
+    // Expect status to be 500
     expect(res.status).toBe(500);
     expect(res.body.message).toBe("Internal server error ");
 

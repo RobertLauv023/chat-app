@@ -29,7 +29,7 @@ app.use(express.json());
 
 
 // ------ Comment out below to try tests -------------------------
-
+/*
 await connectDB(DATABASE_URL);
 console.log("MongoDB connected successfully");
 
@@ -46,7 +46,7 @@ const server = app.listen(PORT, () => {
           credentials: true,
         },
       });
-
+*/
 // ---------------------------------------------------------------
 
 // Define a user schema for MongoDB
@@ -458,7 +458,7 @@ const getMessages = async (req, res) => {
 };
 
 //------- Comment out below to try tests -------------------------------------------------------
-
+/*
 // Socket.IO Connection
 io.on('connection', socket => {
     console.log('A user connected');
@@ -493,7 +493,7 @@ io.on('connection', socket => {
       console.log('User disconnected');
     });
   });
-
+*/
 //--------------- END --------------------------------------------------------------------------------
 
 // Define the router and endpoint
