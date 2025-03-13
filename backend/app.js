@@ -27,27 +27,53 @@ app.use(
 // Middleware to parse incoming JSON requests
 app.use(express.json());
 
+// Separate the database connection and server start logic into a function
+async function startBackend() {
+  await connectDB(DATABASE_URL);
+  console.log("MongoDB connected successfully");
 
-// ------ Comment out below to try tests -------------------------
-/*
-await connectDB(DATABASE_URL);
-console.log("MongoDB connected successfully");
+  // Now start the server listening
+  const server = app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
+  });
 
-// Now start the server listening
-const server = app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
-});
+  const io = new SocketServer(server, {
+    cors: {
+      origin: "http://localhost:5173",
+      credentials: true,
+    },
+  });
 
-  const io = new SocketServer(server, 
-    {
+  io.on('connection', socket => {
+    console.log('A user connected');
+  
+    socket.on('joinRoom', roomName => {
+      socket.join(roomName);
+      console.log(`User joined room: ${roomName}`);
+    });
+  
+    socket.on('sendMessage', async (data) => {
+      const { roomName, sender, message } = data;
+      const newMessage = new Message({ roomName, sender, message, timestamp: new Date() });
 
-        cors: {
-          origin: "http://localhost:5173",
-          credentials: true,
-        },
-      });
-*/
-// ---------------------------------------------------------------
+      try {
+        await newMessage.save();
+        io.to(roomName).emit('newMessage', newMessage);
+      } catch (error) {
+        console.error("Error saving message", error);
+      }
+    });
+
+    socket.on('disconnect', () => {
+      console.log('User disconnected');
+    });
+  });
+}
+
+// If not running Jest tests, then start up the backend
+if (!process.env.JEST_WORKER_ID) {
+  startBackend();
+}
 
 // Define a user schema for MongoDB
 const userSchema = new mongoose.Schema({
@@ -456,45 +482,6 @@ const getMessages = async (req, res) => {
   }
 
 };
-
-//------- Comment out below to try tests -------------------------------------------------------
-/*
-// Socket.IO Connection
-io.on('connection', socket => {
-    console.log('A user connected');
-  
-    // Join a chat room
-    socket.on('joinRoom', roomName => {
-      socket.join(roomName);
-      console.log(`User joined room: ${roomName}`);
-    });
-  
-    // Listen for new messages from the client
-    socket.on('sendMessage', async (data) => {
-        const { roomName, sender, message } = data;
-
-        const newMessage = new Message({ roomName, sender, message, timestamp: new Date()});
-
-        try {
-            await newMessage.save();
-            console.log("Message saved to MongoDB", newMessage);
-            
-             // Broadcast the new message to all clients in the room
-            io.to(roomName).emit('newMessage', newMessage);
-        } catch (error){
-            console.error("Error saving message", error);
-        }
-  
-     
-    });
-  
-    // Handle disconnect event
-    socket.on('disconnect', () => {
-      console.log('User disconnected');
-    });
-  });
-*/
-//--------------- END --------------------------------------------------------------------------------
 
 // Define the router and endpoint
 const authRoutes = Router();
