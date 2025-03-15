@@ -27,7 +27,7 @@ Likewise, make sure that the **Git** commands work in your IDE. If not, then you
 ## Installation
 
 1. **Clone** the repository
-   - Use `git clone https://github.com/winterbread/chat-app.git` in the directory of your choice
+   - Use `git clone https://github.com/RobertLauv023/chat-app.git` in the directory of your choice
 2. **Navigate** to the newly cloned repository in your terminal
 3. **Install** dependencies for both the front and backend
 
